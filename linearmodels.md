@@ -1,4 +1,4 @@
-Linear models
+Linear Models
 ================
 Amrutha Banda
 2025-11-06
@@ -98,3 +98,74 @@ fit |>
     ##       <dbl>         <dbl> <dbl>     <dbl>     <dbl> <dbl>    <dbl>  <dbl>  <dbl>
     ## 1    0.0342        0.0341  182.      271. 6.73e-229     4 -202113. 4.04e5 4.04e5
     ## # ℹ 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+## Diagnostics
+
+Look at residuals
+
+``` r
+nyc_airbnb |>  
+  modelr::add_residuals(fit) |> 
+  modelr::add_predictions(fit) |>  
+  filter(resid<1000) |> 
+  ggplot(aes(x= resid)) +
+  geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](linearmodels_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+nyc_airbnb |>  
+  modelr::add_residuals(fit) |> 
+  modelr::add_predictions(fit) |>  
+  filter(resid<1000) |> 
+  ggplot(aes(x= borough, y=resid)) +
+  geom_violin()
+```
+
+![](linearmodels_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+
+``` r
+nyc_airbnb |>  
+  modelr::add_residuals(fit) |> 
+  modelr::add_predictions(fit) |>  
+  filter(resid<1000) |> 
+  ggplot(aes(x= stars, y=resid)) +
+  geom_point()
+```
+
+![](linearmodels_files/figure-gfm/unnamed-chunk-8-3.png)<!-- -->
+
+## Hypothesis Testing
+
+``` r
+fit |>  
+  broom::tidy()
+```
+
+    ## # A tibble: 5 × 5
+    ##   term            estimate std.error statistic   p.value
+    ##   <chr>              <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)         19.8     12.2       1.63 1.04e-  1
+    ## 2 stars               32.0      2.53     12.7  1.27e- 36
+    ## 3 boroughBrooklyn    -49.8      2.23    -22.3  6.32e-109
+    ## 4 boroughQueens      -77.0      3.73    -20.7  2.58e- 94
+    ## 5 boroughBronx       -90.3      8.57    -10.5  6.64e- 26
+
+What about a categorical variable?
+
+``` r
+fit_alt= lm(price ~ stars + borough + room_type, data=nyc_airbnb)
+fit_null= lm(price ~ stars + borough, data= nyc_airbnb)
+
+anova(fit_null, fit_alt) |> 
+  broom::tidy()
+```
+
+    ## # A tibble: 2 × 7
+    ##   term                        df.residual    rss    df   sumsq statistic p.value
+    ##   <chr>                             <dbl>  <dbl> <dbl>   <dbl>     <dbl>   <dbl>
+    ## 1 price ~ stars + borough           30525 1.01e9    NA NA            NA       NA
+    ## 2 price ~ stars + borough + …       30523 9.21e8     2  8.42e7     1394.       0
